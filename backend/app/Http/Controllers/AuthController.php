@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -37,35 +38,41 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'login' => 'required', // this can be user_id or email
+            'email' => 'required|email',
             'password' => 'required'
         ]);
 
-        // Try to find the user based on whether login is numeric (user_id) or email
-        if (is_numeric($request->login)) {
-            // Login using user_id
-            $user = User::where('id', $request->login)->where('role_id', '<', 5)->first();
-        } else {
-            // Login using email (applicant only)
-            $user = User::where('email', $request->login)->where('role_id', 5)->first();
-        }
+        $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-
+            'success' => true,
+            'token' => $token,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
         ]);
     }
 
+    public function check(Request $request)
+    {
+        return response()->json([
+            'authenticated' => true,
+            'user' => $request->user()
+        ]);
+    }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out']);
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }
