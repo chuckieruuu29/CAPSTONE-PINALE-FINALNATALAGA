@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 axios.defaults.baseURL = 'http://localhost:8000'; // adjust if needed
@@ -17,19 +17,10 @@ axios.interceptors.request.use((config) => {
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post('/api/login', { email, password });
-      const { access_token, user } = response.data;
 
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
-
-      return { success: true, user };
+      return { success: true, user: userData };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Login failed',
+
       };
     }
   };
@@ -43,13 +34,11 @@ export const AuthProvider = ({ children }) => {
         password_confirmation,
       });
 
-      const { access_token, user } = response.data;
 
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
 
-      return { success: true, user };
+      return { success: true, user: userData };
     } catch (error) {
+      console.error('Registration error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Registration failed',
@@ -64,10 +53,11 @@ export const AuthProvider = ({ children }) => {
     } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

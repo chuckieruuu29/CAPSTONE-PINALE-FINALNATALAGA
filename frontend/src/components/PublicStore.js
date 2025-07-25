@@ -6,7 +6,7 @@ const PublicStore = () => {
       {/* Navigation */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
         <div className="container">
-          <a className="navbar-brand" href="#">
+          <a className="navbar-brand" href="/">
             <i className="fas fa-hammer me-2"></i>
             Unick Enterprises
           </a>
@@ -205,9 +205,9 @@ const PublicStore = () => {
             <div className="col-lg-4 mb-4">
               <h5>Follow Us</h5>
               <div>
-                <a href="#" className="text-white me-3"><i className="fab fa-facebook fa-2x"></i></a>
-                <a href="#" className="text-white me-3"><i className="fab fa-instagram fa-2x"></i></a>
-                <a href="#" className="text-white me-3"><i className="fab fa-twitter fa-2x"></i></a>
+                <button className="btn btn-link text-white me-3 p-0" onClick={() => window.open('https://facebook.com', '_blank')}><i className="fab fa-facebook fa-2x"></i></button>
+                <button className="btn btn-link text-white me-3 p-0" onClick={() => window.open('https://instagram.com', '_blank')}><i className="fab fa-instagram fa-2x"></i></button>
+                <button className="btn btn-link text-white me-3 p-0" onClick={() => window.open('https://twitter.com', '_blank')}><i className="fab fa-twitter fa-2x"></i></button>
               </div>
             </div>
           </div>

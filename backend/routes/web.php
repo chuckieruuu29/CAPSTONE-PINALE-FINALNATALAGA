@@ -13,6 +13,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Auth routes (for SPA)
+Route::post('/api/register', [AuthController::class, 'register']);
+Route::post('/api/login', [AuthController::class, 'login']);
+
 // API Routes (with CORS headers for frontend)
 Route::prefix('api')->middleware(['api'])->group(function () {
     
