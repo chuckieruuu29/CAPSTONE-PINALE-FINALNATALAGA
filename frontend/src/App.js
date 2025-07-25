@@ -25,9 +25,10 @@ const ProtectedRoute = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className="woodcraft-loading">
+        <div className="loading-spinner">
+          <div className="spinner-ring"></div>
+          <p>Loading WoodCraft...</p>
         </div>
       </div>
     );
@@ -38,10 +39,12 @@ const ProtectedRoute = ({ children }) => {
 
 // Main App Layout
 const AppLayout = ({ children }) => (
-  <div className="d-flex">
+  <div className="app-layout">
     <Navbar />
-    <main className="flex-grow-1 p-4" style={{ marginLeft: '250px', minHeight: '100vh', background: '#f8f9fa' }}>
-      {children}
+    <main className="main-content">
+      <div className="content-wrapper">
+        {children}
+      </div>
     </main>
   </div>
 );
@@ -50,10 +53,11 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <div className="App woodcraft-app">
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/store" element={<PublicStore />} />
             
             {/* Protected Routes */}

@@ -16,14 +16,6 @@ Route::get('/', function () {
 // API Routes (with CORS headers for frontend)
 Route::prefix('api')->middleware(['api'])->group(function () {
     
-    // Authentication routes
-    Route::prefix('auth')->group(function () {
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-        Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
-    });
-
     // Protected routes
     Route::middleware(['auth:sanctum'])->group(function () {
         
