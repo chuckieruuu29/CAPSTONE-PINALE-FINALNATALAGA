@@ -1,152 +1,107 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      navigate('/');
-    } else {
-      setError(result.message || 'Login failed');
+    try {
+      const res = await axios.post("http://localhost:8000/api/login", formData, {
+        withCredentials: true,
+      });
+
+      const { token, user } = res.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Redirect based on role
+      if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/customer/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
-  // Demo login function
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    setError('');
-    
-    // For demo purposes, simulate successful login
-    const demoUser = {
-      id: 1,
-      name: 'Demo User',
-      email: 'demo@unickenterprises.com',
-      role: 'admin'
-    };
-    
-    localStorage.setItem('token', 'demo-token-123');
-    localStorage.setItem('user', JSON.stringify(demoUser));
-    
-    // Simulate API delay
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 1000);
+  const handleDemoLogin = () => {
+    setFormData({
+      email: "demo@example.com",
+      password: "password",
+    });
   };
 
   return (
-    <div className="container-fluid" style={{ height: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div className="row justify-content-center align-items-center h-100">
-        <div className="col-xl-4 col-lg-5 col-md-6">
-          <div className="card shadow-lg border-0">
-            <div className="card-body p-5">
-              {/* Logo and Title */}
-              <div className="text-center mb-4">
-                <div className="sidebar-brand-icon mb-3">
-                  <i className="fas fa-hammer fa-3x text-primary"></i>
-                </div>
-                <h1 className="h4 text-gray-900 mb-2">Unick Enterprises</h1>
-                <p className="text-muted">Order Processing Management System</p>
-              </div>
-
-              {/* Error Alert */}
-              {error && (
-                <div className="alert alert-danger" role="alert">
-                  {error}
-                </div>
-              )}
-
-              {/* Login Form */}
-              <form onSubmit={handleSubmit}>
-                <div className="form-group mb-3">
-                  <label className="form-label">Email Address</label>
-                  <input
-                    type="email"
-                    className="form-control form-control-lg"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter email address..."
-                    required
-                  />
-                </div>
-
-                <div className="form-group mb-4">
-                  <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-control form-control-lg"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Password"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg btn-block w-100 mb-3"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      Signing In...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
-                </button>
-              </form>
-
-              {/* Demo Login */}
-              <div className="text-center">
-                <hr />
-                <p className="text-muted mb-3">For demonstration purposes:</p>
-                <button
-                  onClick={handleDemoLogin}
-                  className="btn btn-outline-success btn-lg w-100"
-                  disabled={loading}
-                >
-                  <i className="fas fa-play me-2"></i>
-                  Try Demo Login
-                </button>
-              </div>
-
-              {/* Footer */}
-              <div className="text-center mt-4">
-                <small className="text-muted">
-                  Woodcraft Furniture Manufacturing System<br />
-                  Cabuyao City, Laguna
-                </small>
-              </div>
-            </div>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+      <div className="card shadow-lg p-4" style={{ width: "100%", maxWidth: "400px" }}>
+        <h2 className="text-center mb-4">Login</h2>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
           </div>
+          <div className="mb-3">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              className="form-control"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        {/* Demo Login and Register */}
+        <div className="text-center mt-4">
+          <hr />
+          <p className="text-muted mb-3">For demonstration purposes:</p>
+          <button
+            onClick={handleDemoLogin}
+            className="btn btn-outline-success btn-lg w-100 mb-3"
+            disabled={loading}
+          >
+            <i className="fas fa-play me-2"></i>
+            Try Demo Login
+          </button>
+
+          <p className="text-muted">Don't have an account?</p>
+          <button
+            onClick={() => navigate("/register")}
+            className="btn btn-outline-primary btn-lg w-100"
+          >
+            <i className="fas fa-user-plus me-2"></i>
+            Create New Account
+          </button>
         </div>
       </div>
     </div>

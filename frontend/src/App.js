@@ -13,6 +13,7 @@ import Inventory from './components/Inventory';
 import Production from './components/Production';
 import Reports from './components/Reports';
 import Login from './components/Login';
+import Register from './components/Register';
 import PublicStore from './components/PublicStore';
 
 // Context
