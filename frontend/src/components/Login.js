@@ -41,13 +41,6 @@ const Login = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    setFormData({
-      email: "demo@example.com",
-      password: "password",
-    });
-  };
-
   return (
     <div 
       className="container-fluid d-flex justify-content-center align-items-center vh-100"
@@ -160,27 +153,9 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Demo Login and Register */}
+        {/* Register */}
         <div className="text-center mt-4">
           <hr style={{ border: "1px solid #CD853F" }} />
-          <p className="text-muted mb-3" style={{ color: "#8B4513" }}>
-            For demonstration purposes:
-          </p>
-          <button
-            onClick={handleDemoLogin}
-            className="btn btn-outline-success btn-lg w-100 mb-3"
-            disabled={loading}
-            style={{
-              border: "2px solid #228B22",
-              color: "#228B22",
-              backgroundColor: "transparent",
-              borderRadius: "8px"
-            }}
-          >
-            <i className="fas fa-play me-2"></i>
-            Try Demo Workshop
-          </button>
-
           <p className="text-muted" style={{ color: "#8B4513" }}>
             Bago ka lang?
           </p>

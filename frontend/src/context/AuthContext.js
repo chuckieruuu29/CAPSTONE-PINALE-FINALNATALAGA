@@ -1,19 +1,37 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Configure axios defaults
 axios.defaults.baseURL = 'http://localhost:8000';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.withCredentials = true; // Important for CSRF cookies
 
-// Inject Bearer token on all requests
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Configure axios interceptor to handle CSRF tokens
+axios.interceptors.request.use(
+  (config) => {
+    // Get CSRF token from cookie
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1];
+    
+    if (token) {
+      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
+    }
+
+    // Also check for Bearer token
+    const bearerToken = localStorage.getItem('token');
+    if (bearerToken) {
+      config.headers.Authorization = `Bearer ${bearerToken}`;
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 const AuthContext = createContext();
 
@@ -22,96 +40,153 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-    }
-    setLoading(false);
+    // Check if user is already authenticated on app start
+    checkAuthStatus();
   }, []);
 
-  const getCsrfToken = async () => {
+  const checkAuthStatus = async () => {
     try {
-      await axios.get('/sanctum/csrf-cookie');
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await axios.get('/api/user');
+        setUser(response.data);
+      }
     } catch (error) {
-      console.error('Failed to get CSRF token:', error);
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
   };
 
   const login = async (email, password) => {
     try {
-      // Get CSRF token first
-      await getCsrfToken();
+      setLoading(true);
       
+      // First, get CSRF cookie for SPA authentication
+      await axios.get('/sanctum/csrf-cookie');
+      
+      // Attempt login
       const response = await axios.post('/api/login', {
         email,
         password,
       });
 
-      const { user: userData, token } = response.data;
-      
-      // Store token and user data
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-
-      return { success: true, user: userData };
+      if (response.data.success) {
+        const { user, token } = response.data;
+        
+        // Store token
+        localStorage.setItem('token', token);
+        
+        // Set user
+        setUser(user);
+        
+        return {
+          success: true,
+          user,
+          message: 'Login successful'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data.message || 'Login failed'
+        };
+      }
     } catch (error) {
       console.error('Login error:', error);
+      
+      let message = 'Login failed. Please try again.';
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        message = Object.values(error.response.data.errors).flat().join(', ');
+      }
+      
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
-        errors: error.response?.data?.errors,
+        message
       };
+    } finally {
+      setLoading(false);
     }
   };
 
-  const register = async (name, email, password, password_confirmation) => {
+  const register = async (name, email, password, passwordConfirmation) => {
     try {
-      // Get CSRF token first
-      await getCsrfToken();
+      setLoading(true);
+      
+      // Get CSRF cookie
+      await axios.get('/sanctum/csrf-cookie');
       
       const response = await axios.post('/api/register', {
         name,
         email,
         password,
-        password_confirmation,
+        password_confirmation: passwordConfirmation,
       });
 
-      const { user: userData, token } = response.data;
-      
-      // Store token and user data
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-
-      return { success: true, user: userData };
+      if (response.data.success) {
+        const { user, token } = response.data;
+        
+        localStorage.setItem('token', token);
+        setUser(user);
+        
+        return {
+          success: true,
+          user,
+          message: 'Registration successful'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.data.message || 'Registration failed'
+        };
+      }
     } catch (error) {
       console.error('Registration error:', error);
+      
+      let message = 'Registration failed. Please try again.';
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        message = Object.values(error.response.data.errors).flat().join(', ');
+      }
+      
       return {
         success: false,
-        message: error.response?.data?.message || 'Registration failed',
-        errors: error.response?.data?.errors,
+        message
       };
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
       await axios.post('/api/logout');
-    } catch {}
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    login,
+    register,
+    logout,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
