@@ -1,38 +1,154 @@
-.App {
+/* WoodCraft App Layout Styles */
+.woodcraft-app {
+  font-family: 'Merriweather', serif;
+  background: var(--wood-cream);
+  min-height: 100vh;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  background: linear-gradient(135deg, var(--wood-cream) 0%, var(--wood-ivory) 100%);
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Woodcraft Loading Spinner */
+.woodcraft-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--wood-dark) 0%, var(--wood-medium) 100%);
+  color: var(--wood-ivory);
+}
+
+.loading-spinner {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.spinner-ring {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(218, 165, 32, 0.3);
+  border-top: 4px solid var(--wood-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.loading-spinner p {
+  font-family: 'Crimson Text', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--wood-ivory);
+  margin: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .content-wrapper {
+    padding: 1rem;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* Card Styling */
+.woodcraft-card {
+  background: var(--wood-ivory);
+  border: var(--wood-border);
+  border-radius: var(--wood-radius);
+  box-shadow: var(--wood-shadow);
+  transition: all 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
+.woodcraft-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 69, 19, 0.35);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.card-header-wood {
+  background: linear-gradient(135deg, var(--wood-light) 0%, var(--wood-accent) 100%);
+  color: var(--wood-ivory);
+  border-bottom: 2px solid var(--wood-medium);
+  font-weight: 600;
+  font-family: 'Crimson Text', serif;
+}
+
+/* Form Elements */
+.form-control-wood {
+  border: 2px solid var(--wood-light);
+  border-radius: var(--wood-radius);
+  padding: 0.75rem 1rem;
+  font-family: 'Merriweather', serif;
+  background: var(--wood-ivory);
+  transition: all 0.3s ease;
+}
+
+.form-control-wood:focus {
+  border-color: var(--wood-accent);
+  box-shadow: 0 0 0 0.2rem rgba(218, 165, 32, 0.25);
+  background: white;
+}
+
+/* Table Styling */
+.table-wood {
+  background: var(--wood-ivory);
+  border-radius: var(--wood-radius);
+  overflow: hidden;
+  box-shadow: var(--wood-shadow);
+}
+
+.table-wood thead {
+  background: linear-gradient(135deg, var(--wood-medium) 0%, var(--wood-dark) 100%);
+  color: var(--wood-ivory);
+}
+
+.table-wood tbody tr:nth-child(even) {
+  background: var(--wood-cream);
+}
+
+.table-wood tbody tr:hover {
+  background: rgba(218, 165, 32, 0.1);
+}
+
+/* Page Headers */
+.page-header-wood {
+  background: linear-gradient(135deg, var(--wood-dark) 0%, var(--wood-medium) 100%);
+  color: var(--wood-ivory);
+  padding: 2rem;
+  border-radius: var(--wood-radius);
+  margin-bottom: 2rem;
+  box-shadow: var(--wood-shadow);
+}
+
+.page-header-wood h1 {
+  font-family: 'Crimson Text', serif;
+  font-weight: 600;
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+.page-header-wood p {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
 }
