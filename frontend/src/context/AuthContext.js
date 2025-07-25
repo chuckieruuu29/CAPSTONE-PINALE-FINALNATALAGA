@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Configure axios defaults
@@ -24,40 +24,50 @@ axios.interceptors.request.use(
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Get CSRF cookie before making authenticated requests
-  const getCsrfCookie = async () => {
-    try {
-      await axios.get('/sanctum/csrf-cookie');
-    } catch (error) {
-      console.error('Failed to get CSRF cookie:', error);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check if user is logged in on app start
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
-  };
+    setLoading(false);
+  }, []);
 
   const login = async (email, password) => {
     try {
-      // Get CSRF cookie first
-      await getCsrfCookie();
-      
       const response = await axios.post('/api/login', {
         email,
         password,
       });
 
-      const { token, user } = response.data;
+      const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
 
-      return { success: true, user };
+      return { success: true, user: userData };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Login failed' };
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Login failed. Please check your credentials.' 
+      };
     }
   };
 
   const register = async (name, email, password, password_confirmation) => {
     try {
-      // Get CSRF cookie first
-      await getCsrfCookie();
-      
       const response = await axios.post('/api/register', {
         name,
         email,
@@ -65,12 +75,14 @@ export const AuthProvider = ({ children }) => {
         password_confirmation
       });
 
-      const { token, user } = response.data;
+      const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
 
-      return { success: true, user };
+      return { success: true, user: userData };
     } catch (error) {
+      console.error('Registration error:', error);
       return {
         success: false,
         message: error.response?.data?.message || 'Registration failed',
@@ -85,10 +97,11 @@ export const AuthProvider = ({ children }) => {
     } catch {}
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
