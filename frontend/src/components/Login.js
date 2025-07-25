@@ -87,7 +87,7 @@ const Login = () => {
               fontFamily: "'Georgia', serif"
             }}
           >
-            WoodCraft Login
+            Login
           </h2>
         </div>
         
@@ -156,7 +156,7 @@ const Login = () => {
             onMouseOver={(e) => e.target.style.backgroundColor = "#654321"}
             onMouseOut={(e) => e.target.style.backgroundColor = "#8B4513"}
           >
-            {loading ? "Crafting Access..." : "Enter Workshop"}
+            {loading ? "Mag aaccess na ngani..." : "Login"}
           </button>
         </form>
 
@@ -182,7 +182,7 @@ const Login = () => {
           </button>
 
           <p className="text-muted" style={{ color: "#8B4513" }}>
-            New to the craft?
+            Bago ka lang?
           </p>
           <button
             onClick={() => navigate("/register")}
@@ -198,7 +198,7 @@ const Login = () => {
             onMouseOut={(e) => e.target.style.backgroundColor = "#CD853F"}
           >
             <i className="fas fa-user-plus me-2"></i>
-            Join the Guild
+            No account yet? Register ka muna
           </button>
         </div>
       </div>

@@ -1,72 +1,51 @@
 import { createContext, useContext } from 'react';
 import axios from 'axios';
 
-// Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:8000';
-axios.defaults.withCredentials = true;
+axios.defaults.baseURL = 'http://localhost:8000'; // adjust if needed
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Add request interceptor to include auth token
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Inject Bearer token on all requests
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Get CSRF cookie before making authenticated requests
-  const getCsrfCookie = async () => {
-    try {
-      await axios.get('/sanctum/csrf-cookie');
-    } catch (error) {
-      console.error('Failed to get CSRF cookie:', error);
-    }
-  };
-
   const login = async (email, password) => {
     try {
-      // Get CSRF cookie first
-      await getCsrfCookie();
-      
-      const response = await axios.post('/api/login', {
-        email,
-        password,
-      });
+      const response = await axios.post('/api/login', { email, password });
+      const { access_token, user } = response.data;
 
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
 
       return { success: true, user };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Login failed' };
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Login failed',
+      };
     }
   };
 
   const register = async (name, email, password, password_confirmation) => {
     try {
-      // Get CSRF cookie first
-      await getCsrfCookie();
-      
       const response = await axios.post('/api/register', {
         name,
         email,
         password,
-        password_confirmation
+        password_confirmation,
       });
 
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
+      const { access_token, user } = response.data;
+
+      localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
 
       return { success: true, user };
@@ -74,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || 'Registration failed',
-        errors: error.response?.data?.errors
+        errors: error.response?.data?.errors,
       };
     }
   };

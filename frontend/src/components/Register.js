@@ -90,7 +90,7 @@ const Register = () => {
                     fontFamily: "'Georgia', serif"
                   }}
                 >
-                  Join the WoodCraft Guild
+                  Register 
                 </h2>
               </div>
 
@@ -113,7 +113,7 @@ const Register = () => {
                     className="form-label"
                     style={{ color: "#654321", fontWeight: "bold" }}
                   >
-                    Craftsman Name
+                    Name
                   </label>
                   <input
                     type="text"
@@ -169,7 +169,7 @@ const Register = () => {
                     className="form-label"
                     style={{ color: "#654321", fontWeight: "bold" }}
                   >
-                    Workshop Password
+                    Password
                   </label>
                   <input
                     type="password"
@@ -235,10 +235,10 @@ const Register = () => {
                   {loading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" />
-                      Crafting Membership...
+                      Registering...
                     </>
                   ) : (
-                    'Become a Craftsman'
+                    'Register'
                   )}
                 </button>
               </form>
@@ -254,7 +254,7 @@ const Register = () => {
                   onMouseOver={(e) => e.target.style.color = "#654321"}
                   onMouseOut={(e) => e.target.style.color = "#8B4513"}
                 >
-                  Already a guild member? Enter here
+                  May account kana? Enter here
                 </a>
               </div>
             </div>

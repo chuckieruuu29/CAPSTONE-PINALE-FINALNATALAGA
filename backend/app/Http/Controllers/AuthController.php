@@ -36,73 +36,43 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'login' => 'required', // this can be user_id or email
+            'password' => 'required'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        // Try to find the user based on whether login is numeric (user_id) or email
+        if (is_numeric($request->login)) {
+            // Login using user_id
+            $user = User::where('id', $request->login)->where('role_id', '<', 5)->first();
+        } else {
+            // Login using email (applicant only)
+            $user = User::where('email', $request->login)->where('role_id', 5)->first();
+        }
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'success' => true,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            "access_token" => $token,
+            "user" => [
+                "id" => $user->id,
+                "email" => $user->email,
+                "role" => [
+                    "id" => $user->role_id ?? null,
+                    "name" => $user->role->name ?? null
+                ]
+            ]
         ]);
     }
 
-    public function check(Request $request)
-    {
-        try {
-            $user = $request->user();
-            
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not authenticated'
-                ], 401);
-            }
-
-            return response()->json([
-                'success' => true,
-                'user' => $user
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Authentication check failed',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function logout(Request $request)
     {
-        try {
-            $user = $request->user();
-            
-            if ($user) {
-                // Revoke all tokens for the user
-                $user->tokens()->delete();
-            }
+        $request->user()->currentAccessToken()->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Successfully logged out'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Logout failed',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json(['message' => 'Logged out']);
     }
 }
