@@ -93,6 +93,7 @@ php artisan serve
 ```bash
 cd frontend
 npm install
+npm install react react-dom react-router-dom axios bootstrap
 npm start
 ```
 
