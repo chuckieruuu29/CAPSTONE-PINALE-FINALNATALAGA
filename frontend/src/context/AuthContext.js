@@ -5,21 +5,10 @@ import axios from 'axios';
 axios.defaults.baseURL = 'http://localhost:8000';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
-axios.defaults.withCredentials = true; // Important for CSRF cookies
 
 // Configure axios interceptor to handle CSRF tokens
 axios.interceptors.request.use(
   (config) => {
-    // Get CSRF token from cookie
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('XSRF-TOKEN='))
-      ?.split('=')[1];
-    
-    if (token) {
-      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
-    }
-
     // Also check for Bearer token
     const bearerToken = localStorage.getItem('token');
     if (bearerToken) {
@@ -62,11 +51,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      
-      // First, get CSRF cookie for SPA authentication
-      await axios.get('/sanctum/csrf-cookie');
-      
-      // Attempt login
+
+      // Attempt login (Bearer token flow)
       const response = await axios.post('/api/login', {
         email,
         password,
@@ -74,13 +60,13 @@ export const AuthProvider = ({ children }) => {
 
       if (response.data.success) {
         const { user, token } = response.data;
-        
+
         // Store token
         localStorage.setItem('token', token);
-        
+
         // Set user
         setUser(user);
-        
+
         return {
           success: true,
           user,
@@ -94,14 +80,14 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      
+
       let message = 'Login failed. Please try again.';
       if (error.response?.data?.message) {
         message = error.response.data.message;
       } else if (error.response?.data?.errors) {
         message = Object.values(error.response.data.errors).flat().join(', ');
       }
-      
+
       return {
         success: false,
         message
@@ -114,10 +100,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password, passwordConfirmation) => {
     try {
       setLoading(true);
-      
-      // Get CSRF cookie
-      await axios.get('/sanctum/csrf-cookie');
-      
+
       const response = await axios.post('/api/register', {
         name,
         email,
@@ -127,10 +110,10 @@ export const AuthProvider = ({ children }) => {
 
       if (response.data.success) {
         const { user, token } = response.data;
-        
+
         localStorage.setItem('token', token);
         setUser(user);
-        
+
         return {
           success: true,
           user,
@@ -144,14 +127,14 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      
+
       let message = 'Registration failed. Please try again.';
       if (error.response?.data?.message) {
         message = error.response.data.message;
       } else if (error.response?.data?.errors) {
         message = Object.values(error.response.data.errors).flat().join(', ');
       }
-      
+
       return {
         success: false,
         message
