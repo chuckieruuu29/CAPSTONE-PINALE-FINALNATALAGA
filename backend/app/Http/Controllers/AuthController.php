@@ -24,54 +24,50 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Log the user in (session-based) and regenerate session
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
-            'token' => $token,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
         ], 201);
     }
 
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required'
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! Auth::attempt($credentials, true)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
-            'token' => $token,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $request->user(),
         ]);
     }
 
     public function check(Request $request)
     {
         return response()->json([
-            'authenticated' => true,
+            'authenticated' => (bool) $request->user(),
             'user' => $request->user()
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
