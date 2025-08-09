@@ -22,14 +22,7 @@ const Login = () => {
       const result = await login(formData.email, formData.password);
       
       if (result.success) {
-        const { user } = result;
-        
-        // Redirect based on role
-        if (user.role === "admin") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/customer/dashboard");
-        }
+        navigate("/");
       } else {
         setError(result.message || "Invalid credentials. Please try again.");
       }
