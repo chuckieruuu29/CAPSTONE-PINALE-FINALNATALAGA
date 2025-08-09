@@ -59,3 +59,33 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# Backend (Laravel) README
+
+## Sanctum SPA Auth (.env) quick setup
+
+For local development with React at http://localhost:3000 and API at http://localhost:8000, add these to your `.env`:
+
+```
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+
+SESSION_DRIVER=database
+SESSION_DOMAIN=localhost
+SESSION_SAME_SITE=lax
+SESSION_SECURE_COOKIE=false
+
+SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:3000
+```
+
+Then run:
+
+```
+php artisan config:clear
+php artisan route:clear
+php artisan migrate
+```
+
+Notes:
+- Use `SESSION_SAME_SITE=none` and `SESSION_SECURE_COOKIE=true` only when serving the frontend over HTTPS on a different domain.
+- CORS is configured in `config/cors.php` to allow localhost:3000 with credentials.

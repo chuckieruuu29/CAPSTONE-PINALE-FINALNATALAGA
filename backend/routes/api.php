@@ -9,14 +9,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductionController;
 
-// Auth Routes (Public)
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
 // Authenticated Routes
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    
     // Auth
     Route::get('/auth/check', [AuthController::class, 'check']);
     Route::get('/user', function (Request $request) {

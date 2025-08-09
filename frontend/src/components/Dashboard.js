@@ -12,7 +12,7 @@ import {
   Legend,
   ArcElement,
 } from 'chart.js';
-import axios from 'axios';
+import axios from '../context/AuthContext';
 
 // Register ChartJS components
 ChartJS.register(
