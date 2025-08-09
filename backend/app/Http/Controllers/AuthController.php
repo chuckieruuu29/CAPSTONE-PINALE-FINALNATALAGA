@@ -24,14 +24,13 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Log the user in using session (Sanctum SPA)
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
-            'token' => $token,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
         ], 201);
     }
 
@@ -42,36 +41,41 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $credentials = $request->only('email', 'password');
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
-            'token' => $token,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            'user' => Auth::user(),
         ]);
     }
 
     public function check(Request $request)
     {
         return response()->json([
-            'authenticated' => true,
+            'authenticated' => (bool) $request->user(),
             'user' => $request->user()
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        // If using tokens somewhere else, revoke current token if present
+        if ($request->user() && method_exists($request->user(), 'currentAccessToken') && $request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
+        // Log out of web session (Sanctum SPA)
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json(['message' => 'Logged out successfully']);
     }
